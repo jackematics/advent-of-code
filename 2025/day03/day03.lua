@@ -34,7 +34,7 @@ end
 
 print('part 1:', output_joltage)
 
--- PART 1
+-- PART 2
 
 local output_joltage_2 = 0
 
