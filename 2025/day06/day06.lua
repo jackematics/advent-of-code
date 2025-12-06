@@ -37,17 +37,6 @@ for row = 1, #input do
   end
 end
 
--- for row = 1, #equations do
---   for col = 1, #equations[row] do
---     print(equations[row][col])
---   end
---   print()
--- end
---
--- for i = 1, #operations do
---   print(operations[i])
--- end
-
 local total = 0
 for i, equation in ipairs(equations) do
   local operation = operations[i]
@@ -68,3 +57,70 @@ for i, equation in ipairs(equations) do
 end
 
 print('part 1:', total)
+print()
+
+-- PART 2
+
+local transposed = {}
+for col = #input[1], 1, -1 do
+  local line = ''
+  for row = 1, #input do
+    local char = string.sub(input[row], col, col)
+
+    if char ~= '*' and char ~= '+' then
+      line = line .. char
+    end
+  end
+  table.insert(transposed, line)
+end
+
+-- example transposed
+--   4
+-- 431
+-- 623
+--
+-- 175
+-- 581
+--  32
+--
+-- 8
+-- 248
+-- 369
+--
+-- 356
+-- 24
+-- 1
+
+local total_2 = 0
+local equation = #operations
+local operation = operations[equation]
+local equation_val = 0
+
+if operation == '*' then
+  equation_val = 1
+end
+
+for _, raw_val in ipairs(transposed) do
+  if raw_val:match '^ *(.-) *$' == '' then
+    equation = equation - 1
+    operation = operations[equation]
+
+    total_2 = total_2 + equation_val
+
+    if operation == '*' then
+      equation_val = 1
+    else
+      equation_val = 0
+    end
+  else
+    if operation == '*' then
+      equation_val = equation_val * tonumber(raw_val)
+    else
+      equation_val = equation_val + tonumber(raw_val)
+    end
+  end
+end
+
+total_2 = total_2 + equation_val
+
+print('part 2:', total_2)
