@@ -2,7 +2,6 @@ require 'input-reader'
 
 -- local input = Read_File 'day07/example.txt'
 local input = Read_File 'day07/input.txt'
---
 
 local function contains_grid_ref(array, val)
   for _, arr_val in ipairs(array) do
@@ -56,27 +55,27 @@ print('part 1', timeline_count)
 
 -- PART 2
 
-s_0 = { row = 1, col = string.find(input[1], 'S') }
-timeline_count = 1
+timeline_count = 0
+local paths_init = { s_0 }
 
-local function emit_quantum_beam(s_i)
-  if string.sub(input[s_i.row], s_i.col, s_i.col) == '^' then
-    local left = { row = s_i.row, col = s_i.col - 1 }
-    local right = { row = s_i.row, col = s_i.col + 1 }
+local function quantum_emit(paths)
+  for _, branch in ipairs(paths) do
+    local row = branch.row
+    while string.sub(input[row], branch.col, branch.col) ~= '^' do
+      row = row + 1
 
-    timeline_count = timeline_count + 1
-    emit_quantum_beam(left)
-    emit_quantum_beam(right)
-    return
+      if row == #input then
+        timeline_count = timeline_count + 1
+        goto continue
+      end
+    end
+
+    quantum_emit { { row = row, col = branch.col - 1 }, { row = row, col = branch.col + 1 } }
+
+    ::continue::
   end
-
-  if s_i.row == #input then
-    return
-  end
-
-  emit_quantum_beam { row = s_i.row + 1, col = s_i.col }
 end
 
-emit_quantum_beam(s_0)
+quantum_emit(paths_init)
 
 print('part 2', timeline_count)
