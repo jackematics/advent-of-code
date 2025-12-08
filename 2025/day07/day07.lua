@@ -55,27 +55,38 @@ print('part 1', timeline_count)
 
 -- PART 2
 
-timeline_count = 0
-local paths_init = { s_0 }
+local col_counter = {}
+local row_mid = string.find(input[1], 'S')
 
-local function quantum_emit(paths)
-  for _, branch in ipairs(paths) do
-    local row = branch.row
-    while string.sub(input[row], branch.col, branch.col) ~= '^' do
-      row = row + 1
-
-      if row == #input then
-        timeline_count = timeline_count + 1
-        goto continue
-      end
-    end
-
-    quantum_emit { { row = row, col = branch.col - 1 }, { row = row, col = branch.col + 1 } }
-
-    ::continue::
+for col = 1, #input[1] do
+  if string.sub(input[1], col, col) ~= 'S' then
+    table.insert(col_counter, 0)
+  else
+    table.insert(col_counter, 1)
   end
 end
 
-quantum_emit(paths_init)
+local splits = 0
+local i, col, col_end = 3, row_mid, row_mid + 1
+while i < #input do
+  for j = col, col_end do
+    if string.sub(input[i], j, j) == '^' and col_counter[j] ~= 0 then
+      splits = splits + 1
+      col_counter[j - 1] = col_counter[j - 1] + col_counter[j]
+      col_counter[j + 1] = col_counter[j + 1] + col_counter[j]
+      col_counter[j] = 0
+    end
+  end
+
+  i = i + 2
+  col = col - 1
+  col_end = col_end + 1
+end
+
+timeline_count = 0
+
+for _, count in ipairs(col_counter) do
+  timeline_count = timeline_count + count
+end
 
 print('part 2', timeline_count)
