@@ -44,7 +44,7 @@ local circuits = {}
 
 local connection_count = 0
 local d_i = 1
-while connection_count < 10 do
+while connection_count < 1000 do
   local a_circuit_index = nil
   local b_circuit_index = nil
   for i, circuit in ipairs(circuits) do
@@ -99,83 +99,67 @@ for i = 1, 3 do
 end
 
 print('part 1:', three_largest_circuits_product)
+print()
 
--- PART 1 Minimum Spanning Tree Algorithm (Prims)
+-- PART 2 BRUTE FORCE
 
--- local priority_queue = {}
--- local tree = {}
---
--- for i = 1, #input do
---   table.insert(tree, {})
---   for j = 1, #input do
---     if i ~= j then
---       table.insert(tree[i], { start = input[i], dest = input[j], dist = getDistance(input[i], input[j]) })
---     else
---       table.insert(tree[i], { start = input[i], dest = input[j], dist = 0 })
---     end
---   end
--- end
---
--- local visited = {}
--- for _ = 1, #input do
---   table.insert(visited, false)
--- end
---
--- local function add_edges(node)
---   local node_index = nil
---   for i = 1, #input do
---     if input[i] == node then
---       node_index = i
---       break
---     end
---   end
---
---   if node_index == nil then
---     error("Couldn't find node index:", node)
---   end
---
---   visited[node_index] = true
---
---   local edges = tree[node_index]
---   for _, edge in ipairs(edges) do
---     if not visited[edge.start] then
---       table.insert(priority_queue, edge)
---     end
---   end
--- end
---
--- local current_node = input[1]
--- local function lazy_prims()
---   local m = #input - 1
---   local edge_count, mst_cost = 1, 0
---   local mst_edges = {}
---   for _ = 1, m do
---     table.insert(mst_edges, {})
---   end
---
---   add_edges(current_node)
---
---   while #priority_queue > 0 and edge_count ~= m do
---     print(edge_count)
---     local edge = table.remove(priority_queue, 1)
---     local node_index = edge.dest
---
---     if visited[node_index] then
---       goto continue
---     end
---
---     mst_edges[edge_count] = edge
---     edge_count = edge_count + 1
---     mst_cost = mst_cost + edge.dist
---
---     add_edges(node_index)
---
---     ::continue::
---   end
---
---   return mst_cost, mst_edges
--- end
---
--- local _, edges = lazy_prims()
---
--- print('part 1', edges[1] * edges[2] * edges[3])
+local function get_x(raw_junction)
+  local coords = string.gmatch(raw_junction, '([^,]+)')
+
+  return tonumber(coords())
+end
+
+local function missing_junctions(circuit, junctions)
+  for _, junction in ipairs(junctions) do
+    if not table_contains(circuit, junction) then
+      return true
+    end
+  end
+
+  return false
+end
+
+local circuits_2 = {}
+
+local d_j = 1
+repeat
+  local a_circuit_index = nil
+  local b_circuit_index = nil
+  for i, circuit in ipairs(circuits_2) do
+    for _, junction in ipairs(circuit) do
+      if junction == distances[d_j].a then
+        a_circuit_index = i
+      end
+
+      if junction == distances[d_j].b then
+        b_circuit_index = i
+      end
+    end
+  end
+
+  -- pull lonely junction b into circuit where a lives
+  if a_circuit_index ~= nil and b_circuit_index == nil then
+    table.insert(circuits_2[a_circuit_index], distances[d_j].b)
+    -- pull lonely junction a into circuit where b lives
+  elseif a_circuit_index == nil and b_circuit_index ~= nil then
+    table.insert(circuits_2[b_circuit_index], distances[d_j].a)
+  -- create new circuit for two lonely junctions
+  elseif a_circuit_index == nil and b_circuit_index == nil then
+    table.insert(circuits_2, { distances[d_j].a, distances[d_j].b })
+  -- circuits in same junction
+  elseif a_circuit_index == b_circuit_index and a_circuit_index ~= nil then
+  -- combine circuits
+  elseif a_circuit_index ~= b_circuit_index and a_circuit_index ~= nil then
+    for _, junction in ipairs(circuits_2[b_circuit_index]) do
+      if not table_contains(circuits_2[a_circuit_index], junction) then
+        table.insert(circuits_2[a_circuit_index], junction)
+      end
+    end
+
+    table.remove(circuits_2, b_circuit_index)
+  end
+
+  d_j = d_j + 1
+until #circuits_2 == 1 and not missing_junctions(circuits_2[1], input)
+
+print('part 2:', get_x(distances[d_j - 1].a) * get_x(distances[d_j - 1].b))
